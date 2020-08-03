@@ -54,7 +54,10 @@ func (game *Game) SetStone(color int, pos *Position) error {
 		return errors.New("OutOfTurn")
 	}
 
-	game.board.SetStone(color, pos)
+	err := game.board.SetStone(color, pos)
+	if err != nil {
+		return err
+	}
 	if game.board.IsOccupied() {
 		game.updateGameState(Finish)
 		return nil
