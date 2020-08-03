@@ -68,9 +68,12 @@ func (b *Board) Show() {
 
 func (b *Board) SetStone(color int, pos *Position) error {
 	fmt.Printf("SetStone: (%d, %d) color: %d\n", pos.X, pos.Y, color)
-	cell := b.board[pos.Y][pos.X]
+	cell := b.Cell(pos.X, pos.Y)
 	if cell == nil {
 		return fmt.Errorf("Cell not found at (%d, %d)", pos.X, pos.Y)
+	}
+	if cell.State != int(None) {
+		return fmt.Errorf("Not empty cell (%d, %d)", pos.X, pos.Y)
 	}
 	if err := b.allocate(color, cell); err != nil {
 		return fmt.Errorf("Cell not allocate (%d, %d)", pos.X, pos.Y)
@@ -115,48 +118,41 @@ func (b *Board) toArray() [][]int {
 }
 
 func (b *Board) allocate(color int, cell *Cell) error {
+	fmt.Println("(%d, %d) start allocate", cell.X, cell.Y)
 	var allocated = false
-	var opponent = b.Opponent(color)
-	t, err := b.top(cell)
-	if err == nil && t.State == opponent && b.seekTop(color, t) {
+	if b.seekTop(color, cell) {
 		b.updateTop(color, cell)
 		allocated = true
 	}
-	tr, err := b.topRight(cell)
-	if err == nil && tr.State == opponent && b.seekTopRight(color, tr) {
+	if b.seekTopRight(color, cell) {
 		b.updateTopRight(color, cell)
 		allocated = true
 	}
-	r, err := b.right(cell)
-	if err == nil && r.State == opponent && b.seekRight(color, r) {
+	if b.seekRight(color, cell) {
 		b.updateRight(color, cell)
 		allocated = true
 	}
-	br, err := b.bottomRight(cell)
-	if err == nil && br.State == opponent && b.seekBottomRight(color, br) {
+	if b.seekBottomRight(color, cell) {
 		b.updateBottomRight(color, cell)
 		allocated = true
 	}
-	btm, err := b.bottom(cell)
-	if err == nil && btm.State == opponent && b.seekBottom(color, btm) {
+	if b.seekBottom(color, cell) {
 		b.updateBottom(color, cell)
 		allocated = true
 	}
-	bl, err := b.bottomLeft(cell)
-	if err == nil && bl.State == opponent && b.seekBottomLeft(color, bl) {
+	if b.seekBottomLeft(color, cell) {
 		b.updateBottomLeft(color, cell)
 		allocated = true
 	}
-	l, err := b.left(cell)
-	if err == nil && l.State == opponent && b.seekLeft(color, l) {
+	if b.seekLeft(color, cell) {
 		b.updateLeft(color, cell)
 		allocated = true
 	}
-	tl, err := b.topLeft(cell)
-	if err == nil && tl.State == opponent && b.seekTopLeft(color, tl) {
+	if b.seekTopLeft(color, cell) {
 		b.updateTopLeft(color, cell)
 		allocated = true
 	}
+	fmt.Println("(%d, %d) finish allocate", cell.X, cell.Y)
 	if allocated {
 		return nil
 	}
@@ -244,6 +240,7 @@ func (b *Board) seekTop(color int, cell *Cell) bool {
 }
 
 func (b *Board) updateTop(color int, cell *Cell) {
+	fmt.Println("t")
 	next, err := b.top(cell)
 	if err != nil {
 		return
@@ -277,6 +274,7 @@ func (b *Board) seekTopRight(color int, cell *Cell) bool {
 }
 
 func (b *Board) updateTopRight(color int, cell *Cell) {
+	fmt.Println("tr")
 	next, err := b.topRight(cell)
 	if err != nil {
 		return
@@ -311,6 +309,7 @@ func (b *Board) seekRight(color int, cell *Cell) bool {
 }
 
 func (b *Board) updateRight(color int, cell *Cell) {
+	fmt.Println("r")
 	next, err := b.right(cell)
 	if err != nil {
 		return
@@ -345,6 +344,7 @@ func (b *Board) seekBottomRight(color int, cell *Cell) bool {
 }
 
 func (b *Board) updateBottomRight(color int, cell *Cell) {
+	fmt.Println("br")
 	next, err := b.bottomRight(cell)
 	if err != nil {
 		return
@@ -379,6 +379,7 @@ func (b *Board) seekBottom(color int, cell *Cell) bool {
 }
 
 func (b *Board) updateBottom(color int, cell *Cell) {
+	fmt.Println("b")
 	next, err := b.bottom(cell)
 	if err != nil {
 		return
@@ -413,6 +414,7 @@ func (b *Board) seekBottomLeft(color int, cell *Cell) bool {
 }
 
 func (b *Board) updateBottomLeft(color int, cell *Cell) {
+	fmt.Println("bl")
 	next, err := b.bottomLeft(cell)
 	if err != nil {
 		return
@@ -446,6 +448,7 @@ func (b *Board) seekLeft(color int, cell *Cell) bool {
 }
 
 func (b *Board) updateLeft(color int, cell *Cell) {
+	fmt.Println("l")
 	next, err := b.left(cell)
 	if err != nil {
 		return
@@ -479,6 +482,7 @@ func (b *Board) seekTopLeft(color int, cell *Cell) bool {
 }
 
 func (b *Board) updateTopLeft(color int, cell *Cell) {
+	fmt.Println("tl")
 	next, err := b.topLeft(cell)
 	if err != nil {
 		return
@@ -487,6 +491,6 @@ func (b *Board) updateTopLeft(color int, cell *Cell) {
 	opponent := b.Opponent(color)
 
 	if next.State == opponent {
-		b.updateLeft(color, next)
+		b.updateTopLeft(color, next)
 	}
 }
