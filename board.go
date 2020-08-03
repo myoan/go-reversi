@@ -46,8 +46,9 @@ func (b *Board) Cell(x, y int) *Cell {
 
 func (b *Board) Show() {
 	fmt.Println("----------------------")
+	fmt.Println("    0 1 2 3 4 5 6 7")
 	for i := 0; i < b.Height; i++ {
-		fmt.Print("    ")
+		fmt.Printf(" %d  ", i)
 		for j := 0; j < b.Width; j++ {
 			cell := b.board[i][j]
 			switch cell.State {
