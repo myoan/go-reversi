@@ -163,9 +163,9 @@ func (b *Board) allocate(color int, cell *Cell) error {
 	return fmt.Errorf("Failed to allocate at (%d, %d)", cell.X, cell.Y)
 }
 
-func (b *Board) top(cell *Cell) (*Cell, error) {
-	x := cell.X
-	y := cell.Y - 1
+func (b *Board) move(cell *Cell, nextX func(int) int, nextY func(int) int) (*Cell, error) {
+	x := nextX(cell.X)
+	y := nextY(cell.Y)
 	if x < 0 || x >= b.Width {
 		return nil, fmt.Errorf("Invalid position")
 	}
@@ -173,90 +173,54 @@ func (b *Board) top(cell *Cell) (*Cell, error) {
 		return nil, fmt.Errorf("Invalid position")
 	}
 	return b.Cell(x, y), nil
+}
+
+func (b *Board) top(cell *Cell) (*Cell, error) {
+	nextX := func(x int) int { return x }
+	nextY := func(y int) int { return y - 1 }
+	return b.move(cell, nextX, nextY)
 }
 
 func (b *Board) topRight(cell *Cell) (*Cell, error) {
-	x := cell.X + 1
-	y := cell.Y - 1
-	if x < 0 || x >= b.Width {
-		return nil, fmt.Errorf("Invalid position")
-	}
-	if y < 0 || y >= b.Height {
-		return nil, fmt.Errorf("Invalid position")
-	}
-	return b.Cell(x, y), nil
+	nextX := func(x int) int { return x + 1 }
+	nextY := func(y int) int { return y - 1 }
+	return b.move(cell, nextX, nextY)
 }
 
 func (b *Board) right(cell *Cell) (*Cell, error) {
-	x := cell.X + 1
-	y := cell.Y
-	if x < 0 || x >= b.Width {
-		return nil, fmt.Errorf("Invalid position")
-	}
-	if y < 0 || y >= b.Height {
-		return nil, fmt.Errorf("Invalid position")
-	}
-	return b.Cell(x, y), nil
+	nextX := func(x int) int { return x + 1 }
+	nextY := func(y int) int { return y }
+	return b.move(cell, nextX, nextY)
 }
 
 func (b *Board) bottomRight(cell *Cell) (*Cell, error) {
-	x := cell.X + 1
-	y := cell.Y + 1
-	if x < 0 || x >= b.Width {
-		return nil, fmt.Errorf("Invalid position")
-	}
-	if y < 0 || y >= b.Height {
-		return nil, fmt.Errorf("Invalid position")
-	}
-	return b.Cell(x, y), nil
+	nextX := func(x int) int { return x + 1 }
+	nextY := func(y int) int { return y + 1 }
+	return b.move(cell, nextX, nextY)
 }
 
 func (b *Board) bottom(cell *Cell) (*Cell, error) {
-	x := cell.X
-	y := cell.Y + 1
-	if x < 0 || x >= b.Width {
-		return nil, fmt.Errorf("Invalid position")
-	}
-	if y < 0 || y >= b.Height {
-		return nil, fmt.Errorf("Invalid position")
-	}
-	return b.Cell(x, y), nil
+	nextX := func(x int) int { return x }
+	nextY := func(y int) int { return y + 1 }
+	return b.move(cell, nextX, nextY)
 }
 
 func (b *Board) bottomLeft(cell *Cell) (*Cell, error) {
-	x := cell.X - 1
-	y := cell.Y + 1
-	if x < 0 || x >= b.Width {
-		return nil, fmt.Errorf("Invalid position")
-	}
-	if y < 0 || y >= b.Height {
-		return nil, fmt.Errorf("Invalid position")
-	}
-	return b.Cell(x, y), nil
+	nextX := func(x int) int { return x - 1 }
+	nextY := func(y int) int { return y + 1 }
+	return b.move(cell, nextX, nextY)
 }
 
 func (b *Board) left(cell *Cell) (*Cell, error) {
-	x := cell.X - 1
-	y := cell.Y
-	if x < 0 || x >= b.Width {
-		return nil, fmt.Errorf("Invalid position")
-	}
-	if y < 0 || y >= b.Height {
-		return nil, fmt.Errorf("Invalid position")
-	}
-	return b.Cell(x, y), nil
+	nextX := func(x int) int { return x - 1 }
+	nextY := func(y int) int { return y }
+	return b.move(cell, nextX, nextY)
 }
 
 func (b *Board) topLeft(cell *Cell) (*Cell, error) {
-	x := cell.X - 1
-	y := cell.Y - 1
-	if x < 0 || x >= b.Width {
-		return nil, fmt.Errorf("Invalid position")
-	}
-	if y < 0 || y >= b.Height {
-		return nil, fmt.Errorf("Invalid position")
-	}
-	return b.Cell(x, y), nil
+	nextX := func(x int) int { return x - 1 }
+	nextY := func(y int) int { return y - 1 }
+	return b.move(cell, nextX, nextY)
 }
 
 func (b *Board) seekTop(color int, cell *Cell) bool {
