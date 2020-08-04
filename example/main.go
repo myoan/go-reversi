@@ -37,7 +37,7 @@ func main() {
 			pos := readPosition()
 			game.SetStone(2, pos)
 		case reversi.Finish:
-			fmt.Println("Black turn")
+			fmt.Println("Finish")
 			fmt.Printf("%d win!\n", game.Winner())
 			return
 		}
