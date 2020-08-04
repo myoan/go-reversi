@@ -1,0 +1,2 @@
+# go-reversi
+reversi game
