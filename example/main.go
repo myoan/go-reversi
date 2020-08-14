@@ -6,7 +6,7 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/myoan/reversi"
+	reversi "github.com/myoan/go-reversi"
 )
 
 func readPosition() *reversi.Position {
