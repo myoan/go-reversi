@@ -23,113 +23,144 @@ func matchArray(src, dst [][]int) bool {
 	return true
 }
 
-func TestBoard_top(t *testing.T) {
-	input := &Position{X: 1, Y: 2}
-	expected := &Position{X: 1, Y: 1}
-
-	b := NewBoard(InitBoard)
-	cell := b.Cell(input.X, input.Y)
-	actual, _ := b.top(cell)
-	if actual.X != expected.X || actual.Y != expected.Y {
-		t.Errorf("got: (%d, %d)\nwant: (%d, %d)", actual.X, actual.Y, expected.X, expected.Y)
+func TestBoard_Cell(t *testing.T) {
+	testcases := []struct {
+		desc     string
+		x        int
+		y        int
+		expected *Cell
+	}{
+		{
+			desc:     "when valid index",
+			x:        1,
+			y:        1,
+			expected: &Cell{X: 1, Y: 1, State: 5},
+		},
+		{
+			desc:     "when index is negative",
+			x:        -1,
+			y:        1,
+			expected: nil,
+		},
+		{
+			desc:     "when index is negative",
+			x:        1,
+			y:        -1,
+			expected: nil,
+		},
+		{
+			desc:     "when over width",
+			x:        9,
+			y:        1,
+			expected: nil,
+		},
+		{
+			desc:     "when over height",
+			x:        1,
+			y:        9,
+			expected: nil,
+		},
+	}
+	b := NewBoard([][]int{
+		{0, 1, 2, 3},
+		{4, 5, 6, 7},
+		{8, 9, 10, 11},
+		{12, 13, 14, 14},
+	})
+	for _, tc := range testcases {
+		actual := b.Cell(tc.x, tc.y)
+		if tc.expected == nil {
+			if actual != nil {
+				t.Errorf("%s, got: %v, expected: %v", tc.desc, actual, tc.expected)
+			}
+		} else if tc.expected.State != actual.State {
+			t.Errorf("%s, got: %v, expected: %v", tc.desc, actual, tc.expected)
+		}
 	}
 }
 
-func TestBoard_topRight(t *testing.T) {
-	input := &Position{X: 1, Y: 2}
-	expected := &Position{X: 2, Y: 1}
-
-	b := NewBoard(InitBoard)
-	cell := b.Cell(input.X, input.Y)
-	actual, _ := b.topRight(cell)
-	if actual.X != expected.X || actual.Y != expected.Y {
-		t.Errorf("got: (%d, %d)\nwant: (%d, %d)", actual.X, actual.Y, expected.X, expected.Y)
-	}
-}
-
-func TestBoard_right(t *testing.T) {
-	input := &Position{X: 1, Y: 2}
-	expected := &Position{X: 2, Y: 2}
-
-	b := NewBoard(InitBoard)
-	cell := b.Cell(input.X, input.Y)
-	actual, _ := b.right(cell)
-	if actual.X != expected.X || actual.Y != expected.Y {
-		t.Errorf("got: (%d, %d)\nwant: (%d, %d)", actual.X, actual.Y, expected.X, expected.Y)
-	}
-}
-
-func TestBoard_bottomRight(t *testing.T) {
-	input := &Position{X: 1, Y: 2}
-	expected := &Position{X: 2, Y: 3}
-
-	b := NewBoard(InitBoard)
-	cell := b.Cell(input.X, input.Y)
-	actual, _ := b.bottomRight(cell)
-	if actual.X != expected.X || actual.Y != expected.Y {
-		t.Errorf("got: (%d, %d)\nwant: (%d, %d)", actual.X, actual.Y, expected.X, expected.Y)
-	}
-}
-
-func TestBoard_bottom(t *testing.T) {
-	input := &Position{X: 1, Y: 2}
-	expected := &Position{X: 1, Y: 3}
-
-	b := NewBoard(InitBoard)
-	cell := b.Cell(input.X, input.Y)
-	actual, _ := b.bottom(cell)
-	if actual.X != expected.X || actual.Y != expected.Y {
-		t.Errorf("got: (%d, %d)\nwant: (%d, %d)", actual.X, actual.Y, expected.X, expected.Y)
-	}
-}
-
-func TestBoard_bottomLeft(t *testing.T) {
-	input := &Position{X: 1, Y: 2}
-	expected := &Position{X: 0, Y: 3}
-
-	b := NewBoard(InitBoard)
-	cell := b.Cell(input.X, input.Y)
-	actual, _ := b.bottomLeft(cell)
-	if actual.X != expected.X || actual.Y != expected.Y {
-		t.Errorf("got: (%d, %d)\nwant: (%d, %d)", actual.X, actual.Y, expected.X, expected.Y)
-	}
-
-}
-
-func TestBoard_left(t *testing.T) {
-	input := &Position{X: 1, Y: 2}
-	expected := &Position{X: 0, Y: 2}
-
-	b := NewBoard(InitBoard)
-	cell := b.Cell(input.X, input.Y)
-	actual, _ := b.left(cell)
-	if actual.X != expected.X || actual.Y != expected.Y {
-		t.Errorf("got: (%d, %d)\nwant: (%d, %d)", actual.X, actual.Y, expected.X, expected.Y)
+func TestBoard_next(t *testing.T) {
+	testcases := []struct {
+		desc     string
+		input    *Position
+		d        *Direction
+		expected *Position
+	}{
+		{
+			desc:     "direction: top",
+			input:    &Position{X: 1, Y: 2},
+			d:        &Direction{dx: 0, dy: -1},
+			expected: &Position{X: 1, Y: 1},
+		},
+		{
+			desc:     "direction: top-right",
+			input:    &Position{X: 1, Y: 2},
+			d:        &Direction{dx: 1, dy: -1},
+			expected: &Position{X: 2, Y: 1},
+		},
+		{
+			desc:     "direction: right",
+			input:    &Position{X: 1, Y: 2},
+			d:        &Direction{dx: 1, dy: 0},
+			expected: &Position{X: 2, Y: 2},
+		},
+		{
+			desc:     "direction: bottom right",
+			input:    &Position{X: 1, Y: 2},
+			d:        &Direction{dx: 1, dy: 1},
+			expected: &Position{X: 2, Y: 3},
+		},
+		{
+			desc:     "direction: bottom right",
+			input:    &Position{X: 1, Y: 2},
+			d:        &Direction{dx: 1, dy: 1},
+			expected: &Position{X: 2, Y: 3},
+		},
+		{
+			desc:     "direction: bottom",
+			input:    &Position{X: 1, Y: 2},
+			d:        &Direction{dx: 0, dy: 1},
+			expected: &Position{X: 1, Y: 3},
+		},
+		{
+			desc:     "direction: bottom left",
+			input:    &Position{X: 1, Y: 2},
+			d:        &Direction{dx: -1, dy: 1},
+			expected: &Position{X: 0, Y: 3},
+		},
+		{
+			desc:     "direction: left",
+			input:    &Position{X: 1, Y: 2},
+			d:        &Direction{dx: -1, dy: 0},
+			expected: &Position{X: 0, Y: 2},
+		},
+		{
+			desc:     "direction: top left",
+			input:    &Position{X: 1, Y: 2},
+			d:        &Direction{dx: -1, dy: -1},
+			expected: &Position{X: 0, Y: 1},
+		},
 	}
 
-}
-
-func TestBoard_topLeft(t *testing.T) {
-	input := &Position{X: 1, Y: 2}
-	expected := &Position{X: 0, Y: 1}
-
 	b := NewBoard(InitBoard)
-	cell := b.Cell(input.X, input.Y)
-	actual, _ := b.topLeft(cell)
-	if actual.X != expected.X || actual.Y != expected.Y {
-		t.Errorf("got: (%d, %d)\nwant: (%d, %d)", actual.X, actual.Y, expected.X, expected.Y)
+	for _, tc := range testcases {
+		cell := b.Cell(tc.input.X, tc.input.Y)
+		actual, _ := b.next(tc.d, cell)
+		if actual.X != tc.expected.X || actual.Y != tc.expected.Y {
+			t.Errorf("got: (%d, %d)\nwant: (%d, %d)", actual.X, actual.Y, tc.expected.X, tc.expected.Y)
+		}
 	}
 }
-
-func TestBoard_seekTop(t *testing.T) {
+func TestBoard_seek(t *testing.T) {
 	testcases := []struct {
 		desc     string
 		board    [][]int
 		pos      *Position
+		d        *Direction
 		expected bool
 	}{
 		{
-			desc: "when line end is empty cell",
+			desc: "d: top, when line end is empty cell",
 			board: [][]int{
 				{0, 0, 0, 0},
 				{0, 0, 0, 0},
@@ -137,10 +168,11 @@ func TestBoard_seekTop(t *testing.T) {
 				{0, 0, 0, 0},
 			},
 			pos:      &Position{X: 1, Y: 3},
+			d:        &Direction{dx: 0, dy: -1},
 			expected: false,
 		},
 		{
-			desc: "when line not include opponent",
+			desc: "d: top, when line not include opponent",
 			board: [][]int{
 				{0, 0, 0, 0},
 				{0, 0, 0, 0},
@@ -148,10 +180,11 @@ func TestBoard_seekTop(t *testing.T) {
 				{0, 0, 0, 0},
 			},
 			pos:      &Position{X: 1, Y: 3},
+			d:        &Direction{dx: 0, dy: -1},
 			expected: false,
 		},
 		{
-			desc: "when line end is my color",
+			desc: "d: top, when line end is my color",
 			board: [][]int{
 				{0, 0, 0, 0},
 				{0, 1, 0, 0},
@@ -159,31 +192,11 @@ func TestBoard_seekTop(t *testing.T) {
 				{0, 0, 0, 0},
 			},
 			pos:      &Position{X: 1, Y: 3},
+			d:        &Direction{dx: 0, dy: -1},
 			expected: true,
 		},
-	}
-
-	for _, tc := range testcases {
-		b := NewBoard(tc.board)
-		cell := b.Cell(tc.pos.X, tc.pos.Y)
-		actual := b.seekTop(int(Black), cell)
-		if tc.expected != actual {
-			t.Errorf("%s, got: %v, expected: %v", tc.desc, actual, tc.expected)
-			fmt.Println("actual")
-			b.Show()
-		}
-	}
-}
-
-func TestBoard_seekTopRight(t *testing.T) {
-	testcases := []struct {
-		desc     string
-		board    [][]int
-		pos      *Position
-		expected bool
-	}{
 		{
-			desc: "when line end is empty cell",
+			desc: "d: top-right, when line end is empty cell",
 			board: [][]int{
 				{0, 0, 0, 0},
 				{0, 0, 0, 0},
@@ -191,10 +204,11 @@ func TestBoard_seekTopRight(t *testing.T) {
 				{0, 0, 0, 0},
 			},
 			pos:      &Position{X: 0, Y: 3},
+			d:        &Direction{dx: 1, dy: -1},
 			expected: false,
 		},
 		{
-			desc: "when line not include opponent",
+			desc: "d: top-right, when line not include opponent",
 			board: [][]int{
 				{0, 0, 0, 0},
 				{0, 0, 0, 0},
@@ -202,10 +216,11 @@ func TestBoard_seekTopRight(t *testing.T) {
 				{0, 0, 0, 0},
 			},
 			pos:      &Position{X: 0, Y: 3},
+			d:        &Direction{dx: 1, dy: -1},
 			expected: false,
 		},
 		{
-			desc: "when line end is my color",
+			desc: "d: top-right, when line end is my color",
 			board: [][]int{
 				{0, 0, 0, 0},
 				{0, 1, 1, 0},
@@ -213,31 +228,11 @@ func TestBoard_seekTopRight(t *testing.T) {
 				{0, 0, 0, 0},
 			},
 			pos:      &Position{X: 0, Y: 3},
+			d:        &Direction{dx: 1, dy: -1},
 			expected: true,
 		},
-	}
-
-	for _, tc := range testcases {
-		b := NewBoard(tc.board)
-		cell := b.Cell(tc.pos.X, tc.pos.Y)
-		actual := b.seekTopRight(int(Black), cell)
-		if tc.expected != actual {
-			t.Errorf("%s, got: %v, expected: %v", tc.desc, actual, tc.expected)
-			fmt.Println("actual")
-			b.Show()
-		}
-	}
-}
-
-func TestBoard_seekRight(t *testing.T) {
-	testcases := []struct {
-		desc     string
-		board    [][]int
-		pos      *Position
-		expected bool
-	}{
 		{
-			desc: "when line end is empty cell",
+			desc: "d: left, when line end is empty cell",
 			board: [][]int{
 				{0, 0, 0, 0},
 				{0, 0, 0, 0},
@@ -245,10 +240,11 @@ func TestBoard_seekRight(t *testing.T) {
 				{0, 0, 0, 0},
 			},
 			pos:      &Position{X: 0, Y: 2},
+			d:        &Direction{dx: 1, dy: 0},
 			expected: false,
 		},
 		{
-			desc: "when line not include opponent",
+			desc: "d: left, when line not include opponent",
 			board: [][]int{
 				{0, 0, 0, 0},
 				{0, 0, 0, 0},
@@ -256,10 +252,11 @@ func TestBoard_seekRight(t *testing.T) {
 				{0, 0, 0, 0},
 			},
 			pos:      &Position{X: 0, Y: 2},
+			d:        &Direction{dx: 1, dy: 0},
 			expected: false,
 		},
 		{
-			desc: "when line end is my color",
+			desc: "d: left, when line end is my color",
 			board: [][]int{
 				{0, 0, 0, 0},
 				{0, 0, 0, 0},
@@ -267,31 +264,11 @@ func TestBoard_seekRight(t *testing.T) {
 				{0, 0, 0, 0},
 			},
 			pos:      &Position{X: 0, Y: 2},
+			d:        &Direction{dx: 1, dy: 0},
 			expected: true,
 		},
-	}
-
-	for _, tc := range testcases {
-		b := NewBoard(tc.board)
-		cell := b.Cell(tc.pos.X, tc.pos.Y)
-		actual := b.seekRight(int(Black), cell)
-		if tc.expected != actual {
-			t.Errorf("%s, got: %v, expected: %v", tc.desc, actual, tc.expected)
-			fmt.Println("actual")
-			b.Show()
-		}
-	}
-}
-
-func TestBoard_seekBottomRight(t *testing.T) {
-	testcases := []struct {
-		desc     string
-		board    [][]int
-		pos      *Position
-		expected bool
-	}{
 		{
-			desc: "when line end is empty cell",
+			desc: "d: bottom-right, when line end is empty cell",
 			board: [][]int{
 				{0, 0, 0, 0},
 				{0, 0, 0, 0},
@@ -299,10 +276,11 @@ func TestBoard_seekBottomRight(t *testing.T) {
 				{0, 0, 0, 0},
 			},
 			pos:      &Position{X: 0, Y: 0},
+			d:        &Direction{dx: 1, dy: 1},
 			expected: false,
 		},
 		{
-			desc: "when line not include opponent",
+			desc: "d: bottom-right, when line not include opponent",
 			board: [][]int{
 				{0, 0, 0, 0},
 				{0, 1, 0, 0},
@@ -310,10 +288,11 @@ func TestBoard_seekBottomRight(t *testing.T) {
 				{0, 0, 0, 0},
 			},
 			pos:      &Position{X: 0, Y: 0},
+			d:        &Direction{dx: 1, dy: 1},
 			expected: false,
 		},
 		{
-			desc: "when line end is my color",
+			desc: "d: bottom-right, when line end is my color",
 			board: [][]int{
 				{0, 0, 0, 0},
 				{0, 2, 0, 0},
@@ -321,31 +300,11 @@ func TestBoard_seekBottomRight(t *testing.T) {
 				{0, 0, 0, 0},
 			},
 			pos:      &Position{X: 0, Y: 0},
+			d:        &Direction{dx: 1, dy: 1},
 			expected: true,
 		},
-	}
-
-	for _, tc := range testcases {
-		b := NewBoard(tc.board)
-		cell := b.Cell(tc.pos.X, tc.pos.Y)
-		actual := b.seekBottomRight(int(Black), cell)
-		if tc.expected != actual {
-			t.Errorf("%s, got: %v, expected: %v", tc.desc, actual, tc.expected)
-			fmt.Println("actual")
-			b.Show()
-		}
-	}
-}
-
-func TestBoard_seekBottom(t *testing.T) {
-	testcases := []struct {
-		desc     string
-		board    [][]int
-		pos      *Position
-		expected bool
-	}{
 		{
-			desc: "when line end is empty cell",
+			desc: "d: bottom, when line end is empty cell",
 			board: [][]int{
 				{0, 0, 0, 0},
 				{0, 0, 0, 0},
@@ -353,10 +312,11 @@ func TestBoard_seekBottom(t *testing.T) {
 				{0, 0, 0, 0},
 			},
 			pos:      &Position{X: 1, Y: 0},
+			d:        &Direction{dx: 0, dy: 1},
 			expected: false,
 		},
 		{
-			desc: "when line not include opponent",
+			desc: "d: bottom, when line not include opponent",
 			board: [][]int{
 				{0, 0, 0, 0},
 				{0, 1, 0, 0},
@@ -364,10 +324,11 @@ func TestBoard_seekBottom(t *testing.T) {
 				{0, 0, 0, 0},
 			},
 			pos:      &Position{X: 1, Y: 0},
+			d:        &Direction{dx: 0, dy: 1},
 			expected: false,
 		},
 		{
-			desc: "when line end is my color",
+			desc: "d: bottom, when line end is my color",
 			board: [][]int{
 				{0, 0, 0, 0},
 				{0, 2, 0, 0},
@@ -375,31 +336,11 @@ func TestBoard_seekBottom(t *testing.T) {
 				{0, 0, 0, 0},
 			},
 			pos:      &Position{X: 1, Y: 0},
+			d:        &Direction{dx: 0, dy: 1},
 			expected: true,
 		},
-	}
-
-	for _, tc := range testcases {
-		b := NewBoard(tc.board)
-		cell := b.Cell(tc.pos.X, tc.pos.Y)
-		actual := b.seekBottom(int(Black), cell)
-		if tc.expected != actual {
-			t.Errorf("%s, got: %v, expected: %v", tc.desc, actual, tc.expected)
-			fmt.Println("actual")
-			b.Show()
-		}
-	}
-}
-
-func TestBoard_seekBottomLeft(t *testing.T) {
-	testcases := []struct {
-		desc     string
-		board    [][]int
-		pos      *Position
-		expected bool
-	}{
 		{
-			desc: "when line end is empty cell",
+			desc: "d: bottom-left, when line end is empty cell",
 			board: [][]int{
 				{0, 0, 0, 0},
 				{0, 0, 0, 0},
@@ -407,10 +348,11 @@ func TestBoard_seekBottomLeft(t *testing.T) {
 				{0, 0, 0, 0},
 			},
 			pos:      &Position{X: 3, Y: 0},
+			d:        &Direction{dx: -1, dy: 1},
 			expected: false,
 		},
 		{
-			desc: "when line not include opponent",
+			desc: "d: bottom-left, when line not include opponent",
 			board: [][]int{
 				{0, 0, 0, 0},
 				{0, 0, 1, 0},
@@ -418,10 +360,11 @@ func TestBoard_seekBottomLeft(t *testing.T) {
 				{0, 0, 0, 0},
 			},
 			pos:      &Position{X: 3, Y: 0},
+			d:        &Direction{dx: -1, dy: 1},
 			expected: false,
 		},
 		{
-			desc: "when line end is my color",
+			desc: "d: bottom-left, when line end is my color",
 			board: [][]int{
 				{0, 0, 0, 0},
 				{0, 0, 2, 0},
@@ -429,30 +372,11 @@ func TestBoard_seekBottomLeft(t *testing.T) {
 				{0, 0, 0, 0},
 			},
 			pos:      &Position{X: 3, Y: 0},
+			d:        &Direction{dx: -1, dy: 1},
 			expected: true,
 		},
-	}
-
-	for _, tc := range testcases {
-		b := NewBoard(tc.board)
-		cell := b.Cell(tc.pos.X, tc.pos.Y)
-		actual := b.seekBottomLeft(int(Black), cell)
-		if tc.expected != actual {
-			t.Errorf("%s, got: %v, expected: %v", tc.desc, actual, tc.expected)
-			fmt.Println("actual")
-			b.Show()
-		}
-	}
-}
-func TestBoard_seekLeft(t *testing.T) {
-	testcases := []struct {
-		desc     string
-		board    [][]int
-		pos      *Position
-		expected bool
-	}{
 		{
-			desc: "when line end is empty cell",
+			desc: "d: left, when line end is empty cell",
 			board: [][]int{
 				{0, 0, 0, 0},
 				{0, 0, 0, 0},
@@ -460,10 +384,11 @@ func TestBoard_seekLeft(t *testing.T) {
 				{0, 0, 0, 0},
 			},
 			pos:      &Position{X: 3, Y: 2},
+			d:        &Direction{dx: -1, dy: 0},
 			expected: false,
 		},
 		{
-			desc: "when line not include opponent",
+			desc: "d: left, when line not include opponent",
 			board: [][]int{
 				{0, 0, 0, 0},
 				{0, 0, 0, 0},
@@ -471,10 +396,11 @@ func TestBoard_seekLeft(t *testing.T) {
 				{0, 0, 0, 0},
 			},
 			pos:      &Position{X: 3, Y: 2},
+			d:        &Direction{dx: -1, dy: 0},
 			expected: false,
 		},
 		{
-			desc: "when line end is my color",
+			desc: "d: left, when line end is my color",
 			board: [][]int{
 				{0, 0, 0, 0},
 				{0, 0, 0, 0},
@@ -482,31 +408,11 @@ func TestBoard_seekLeft(t *testing.T) {
 				{0, 0, 0, 0},
 			},
 			pos:      &Position{X: 3, Y: 2},
+			d:        &Direction{dx: -1, dy: 0},
 			expected: true,
 		},
-	}
-
-	for _, tc := range testcases {
-		b := NewBoard(tc.board)
-		cell := b.Cell(tc.pos.X, tc.pos.Y)
-		actual := b.seekLeft(int(Black), cell)
-		if tc.expected != actual {
-			t.Errorf("%s, got: %v, expected: %v", tc.desc, actual, tc.expected)
-			fmt.Println("actual")
-			b.Show()
-		}
-	}
-}
-
-func TestBoard_seekTopLeft(t *testing.T) {
-	testcases := []struct {
-		desc     string
-		board    [][]int
-		pos      *Position
-		expected bool
-	}{
 		{
-			desc: "when line end is empty cell",
+			desc: "d: top-left, when line end is empty cell",
 			board: [][]int{
 				{0, 0, 0, 0},
 				{0, 0, 0, 0},
@@ -514,10 +420,11 @@ func TestBoard_seekTopLeft(t *testing.T) {
 				{0, 0, 0, 0},
 			},
 			pos:      &Position{X: 3, Y: 3},
+			d:        &Direction{dx: -1, dy: -1},
 			expected: false,
 		},
 		{
-			desc: "when line not include opponent",
+			desc: "d: top-left, when line not include opponent",
 			board: [][]int{
 				{0, 0, 0, 0},
 				{0, 0, 0, 0},
@@ -525,10 +432,11 @@ func TestBoard_seekTopLeft(t *testing.T) {
 				{0, 0, 0, 0},
 			},
 			pos:      &Position{X: 3, Y: 3},
+			d:        &Direction{dx: -1, dy: -1},
 			expected: false,
 		},
 		{
-			desc: "when line end is my color",
+			desc: "d: top-left, when line end is my color",
 			board: [][]int{
 				{0, 0, 0, 0},
 				{0, 1, 0, 0},
@@ -536,6 +444,7 @@ func TestBoard_seekTopLeft(t *testing.T) {
 				{0, 0, 0, 0},
 			},
 			pos:      &Position{X: 3, Y: 3},
+			d:        &Direction{dx: -1, dy: -1},
 			expected: true,
 		},
 	}
@@ -543,7 +452,7 @@ func TestBoard_seekTopLeft(t *testing.T) {
 	for _, tc := range testcases {
 		b := NewBoard(tc.board)
 		cell := b.Cell(tc.pos.X, tc.pos.Y)
-		actual := b.seekTopLeft(int(Black), cell)
+		actual := b.seek(tc.d, int(Black), cell)
 		if tc.expected != actual {
 			t.Errorf("%s, got: %v, expected: %v", tc.desc, actual, tc.expected)
 			fmt.Println("actual")
@@ -551,16 +460,33 @@ func TestBoard_seekTopLeft(t *testing.T) {
 		}
 	}
 }
-
-func TestBoard_updateTop(t *testing.T) {
+func TestBoard_update(t *testing.T) {
 	testcases := []struct {
 		desc     string
 		board    [][]int
 		pos      *Position
+		d        *Direction
 		expected [][]int
 	}{
 		{
-			desc: "when line end is empty cell",
+			desc: "d: top, when line end is board end",
+			board: [][]int{
+				{0, 0, 0, 0},
+				{0, 0, 0, 0},
+				{0, 0, 0, 0},
+				{0, 0, 0, 0},
+			},
+			pos: &Position{X: 1, Y: 0},
+			d:   &Direction{dx: 0, dy: -1},
+			expected: [][]int{
+				{0, 0, 0, 0},
+				{0, 0, 0, 0},
+				{0, 0, 0, 0},
+				{0, 0, 0, 0},
+			},
+		},
+		{
+			desc: "d: top, when line end is empty cell",
 			board: [][]int{
 				{0, 0, 0, 0},
 				{0, 0, 0, 0},
@@ -568,6 +494,7 @@ func TestBoard_updateTop(t *testing.T) {
 				{0, 0, 0, 0},
 			},
 			pos: &Position{X: 1, Y: 3},
+			d:   &Direction{dx: 0, dy: -1},
 			expected: [][]int{
 				{0, 0, 0, 0},
 				{0, 0, 0, 0},
@@ -576,7 +503,7 @@ func TestBoard_updateTop(t *testing.T) {
 			},
 		},
 		{
-			desc: "when line not include opponent",
+			desc: "d: top, when line not include opponent",
 			board: [][]int{
 				{0, 0, 0, 0},
 				{0, 0, 0, 0},
@@ -584,6 +511,7 @@ func TestBoard_updateTop(t *testing.T) {
 				{0, 0, 0, 0},
 			},
 			pos: &Position{X: 1, Y: 3},
+			d:   &Direction{dx: 0, dy: -1},
 			expected: [][]int{
 				{0, 0, 0, 0},
 				{0, 0, 0, 0},
@@ -592,7 +520,7 @@ func TestBoard_updateTop(t *testing.T) {
 			},
 		},
 		{
-			desc: "when line end is my color",
+			desc: "d: top, when line end is my color",
 			board: [][]int{
 				{0, 0, 0, 0},
 				{0, 1, 0, 0},
@@ -600,6 +528,7 @@ func TestBoard_updateTop(t *testing.T) {
 				{0, 0, 0, 0},
 			},
 			pos: &Position{X: 1, Y: 3},
+			d:   &Direction{dx: 0, dy: -1},
 			expected: [][]int{
 				{0, 0, 0, 0},
 				{0, 1, 0, 0},
@@ -608,11 +537,10 @@ func TestBoard_updateTop(t *testing.T) {
 			},
 		},
 	}
-
 	for _, tc := range testcases {
 		b := NewBoard(tc.board)
 		cell := b.Cell(tc.pos.X, tc.pos.Y)
-		b.updateTop(int(Black), cell)
+		b.update(tc.d, int(Black), cell)
 		if !matchArray(tc.expected, b.toArray()) {
 			t.Errorf("%s", tc.desc)
 			fmt.Println("actual")

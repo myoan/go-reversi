@@ -34,13 +34,12 @@ func (b *Board) GetBoard() [][]*Cell {
 }
 
 func (b *Board) Cell(x, y int) *Cell {
-	if x >= b.Width {
+	if x < 0 || x >= b.Width {
 		return nil
 	}
-	if y >= b.Height {
+	if y < 0 || y >= b.Height {
 		return nil
 	}
-
 	return b.board[y][x]
 }
 
@@ -118,50 +117,31 @@ func (b *Board) toArray() [][]int {
 }
 
 func (b *Board) allocate(color int, cell *Cell) error {
-	fmt.Println("(%d, %d) start allocate", cell.X, cell.Y)
 	var allocated = false
-	if b.seekTop(color, cell) {
-		b.updateTop(color, cell)
-		allocated = true
+	var ds = []*Direction{
+		{dx: 0, dy: -1},  // top
+		{dx: 1, dy: -1},  // top right
+		{dx: 1, dy: 0},   // right
+		{dx: 1, dy: 1},   // bottom right
+		{dx: 0, dy: 1},   // bottom
+		{dx: -1, dy: 1},  // bottom left
+		{dx: -1, dy: 0},  // left
+		{dx: -1, dy: -1}, // top left
 	}
-	if b.seekTopRight(color, cell) {
-		b.updateTopRight(color, cell)
-		allocated = true
+	for _, d := range ds {
+		if b.seek(d, color, cell) {
+			b.update(d, color, cell)
+			allocated = true
+		}
 	}
-	if b.seekRight(color, cell) {
-		b.updateRight(color, cell)
-		allocated = true
-	}
-	if b.seekBottomRight(color, cell) {
-		b.updateBottomRight(color, cell)
-		allocated = true
-	}
-	if b.seekBottom(color, cell) {
-		b.updateBottom(color, cell)
-		allocated = true
-	}
-	if b.seekBottomLeft(color, cell) {
-		b.updateBottomLeft(color, cell)
-		allocated = true
-	}
-	if b.seekLeft(color, cell) {
-		b.updateLeft(color, cell)
-		allocated = true
-	}
-	if b.seekTopLeft(color, cell) {
-		b.updateTopLeft(color, cell)
-		allocated = true
-	}
-	fmt.Println("(%d, %d) finish allocate", cell.X, cell.Y)
 	if allocated {
 		return nil
 	}
 	return fmt.Errorf("Failed to allocate at (%d, %d)", cell.X, cell.Y)
 }
 
-func (b *Board) move(cell *Cell, nextX func(int) int, nextY func(int) int) (*Cell, error) {
-	x := nextX(cell.X)
-	y := nextY(cell.Y)
+func (b *Board) next(d *Direction, cell *Cell) (*Cell, error) {
+	x, y := d.Next(cell.X, cell.Y)
 	if x < 0 || x >= b.Width {
 		return nil, fmt.Errorf("Invalid position")
 	}
@@ -171,64 +151,18 @@ func (b *Board) move(cell *Cell, nextX func(int) int, nextY func(int) int) (*Cel
 	return b.Cell(x, y), nil
 }
 
-func (b *Board) top(cell *Cell) (*Cell, error) {
-	nextX := func(x int) int { return x }
-	nextY := func(y int) int { return y - 1 }
-	return b.move(cell, nextX, nextY)
-}
-
-func (b *Board) topRight(cell *Cell) (*Cell, error) {
-	nextX := func(x int) int { return x + 1 }
-	nextY := func(y int) int { return y - 1 }
-	return b.move(cell, nextX, nextY)
-}
-
-func (b *Board) right(cell *Cell) (*Cell, error) {
-	nextX := func(x int) int { return x + 1 }
-	nextY := func(y int) int { return y }
-	return b.move(cell, nextX, nextY)
-}
-
-func (b *Board) bottomRight(cell *Cell) (*Cell, error) {
-	nextX := func(x int) int { return x + 1 }
-	nextY := func(y int) int { return y + 1 }
-	return b.move(cell, nextX, nextY)
-}
-
-func (b *Board) bottom(cell *Cell) (*Cell, error) {
-	nextX := func(x int) int { return x }
-	nextY := func(y int) int { return y + 1 }
-	return b.move(cell, nextX, nextY)
-}
-
-func (b *Board) bottomLeft(cell *Cell) (*Cell, error) {
-	nextX := func(x int) int { return x - 1 }
-	nextY := func(y int) int { return y + 1 }
-	return b.move(cell, nextX, nextY)
-}
-
-func (b *Board) left(cell *Cell) (*Cell, error) {
-	nextX := func(x int) int { return x - 1 }
-	nextY := func(y int) int { return y }
-	return b.move(cell, nextX, nextY)
-}
-
-func (b *Board) topLeft(cell *Cell) (*Cell, error) {
-	nextX := func(x int) int { return x - 1 }
-	nextY := func(y int) int { return y - 1 }
-	return b.move(cell, nextX, nextY)
-}
-
-func (b *Board) seekTop(color int, cell *Cell) bool {
-	next, err := b.top(cell)
-	if err != nil {
+func (b *Board) seek(d *Direction, color int, cell *Cell) bool {
+	x, y := d.Next(cell.X, cell.Y)
+	next := b.Cell(x, y)
+	if next == nil {
 		return false
 	}
+
 	opponent := b.Opponent(color)
 
 	switch next.State {
 	case opponent:
-		return b.seekTop(color, next)
+		return b.seek(d, color, next)
 	case color:
 		if cell.State == opponent {
 			return true
@@ -239,258 +173,16 @@ func (b *Board) seekTop(color int, cell *Cell) bool {
 	}
 }
 
-func (b *Board) updateTop(color int, cell *Cell) {
-	fmt.Println("t")
-	next, err := b.top(cell)
-	if err != nil {
+func (b *Board) update(d *Direction, color int, cell *Cell) {
+	x, y := d.Next(cell.X, cell.Y)
+	next := b.Cell(x, y)
+	if next == nil {
 		return
 	}
 	cell.Update(color)
 	opponent := b.Opponent(color)
 
 	if next.State == opponent {
-		b.updateTop(color, next)
-	}
-}
-
-func (b *Board) seekTopRight(color int, cell *Cell) bool {
-	next, err := b.topRight(cell)
-	if err != nil {
-		return false
-	}
-	opponent := b.Opponent(color)
-
-	switch next.State {
-	case opponent:
-		return b.seekTopRight(color, next)
-	case color:
-		if cell.State == opponent {
-			return true
-		}
-		return false
-	default:
-		return false
-	}
-}
-
-func (b *Board) updateTopRight(color int, cell *Cell) {
-	fmt.Println("tr")
-	next, err := b.topRight(cell)
-	if err != nil {
-		return
-	}
-	cell.Update(color)
-	opponent := b.Opponent(color)
-
-	if next.State == opponent {
-		b.updateTopRight(color, next)
-	}
-}
-
-func (b *Board) seekRight(color int, cell *Cell) bool {
-	next, err := b.right(cell)
-	if err != nil {
-		return false
-	}
-	opponent := b.Opponent(color)
-
-	switch next.State {
-	case opponent:
-		return b.seekRight(color, next)
-	case color:
-		if cell.State == opponent {
-			return true
-		}
-		return false
-	default:
-		return false
-	}
-	return false
-}
-
-func (b *Board) updateRight(color int, cell *Cell) {
-	fmt.Println("r")
-	next, err := b.right(cell)
-	if err != nil {
-		return
-	}
-	cell.Update(color)
-	opponent := b.Opponent(color)
-
-	if next.State == opponent {
-		b.updateRight(color, next)
-	}
-}
-
-func (b *Board) seekBottomRight(color int, cell *Cell) bool {
-	next, err := b.bottomRight(cell)
-	if err != nil {
-		return false
-	}
-	opponent := b.Opponent(color)
-
-	switch next.State {
-	case opponent:
-		return b.seekBottomRight(color, next)
-	case color:
-		if cell.State == opponent {
-			return true
-		}
-		return false
-	default:
-		return false
-	}
-	return false
-}
-
-func (b *Board) updateBottomRight(color int, cell *Cell) {
-	fmt.Println("br")
-	next, err := b.bottomRight(cell)
-	if err != nil {
-		return
-	}
-	cell.Update(color)
-	opponent := b.Opponent(color)
-
-	if next.State == opponent {
-		b.updateBottomRight(color, next)
-	}
-}
-
-func (b *Board) seekBottom(color int, cell *Cell) bool {
-	next, err := b.bottom(cell)
-	if err != nil {
-		return false
-	}
-	opponent := b.Opponent(color)
-
-	switch next.State {
-	case opponent:
-		return b.seekBottom(color, next)
-	case color:
-		if cell.State == opponent {
-			return true
-		}
-		return false
-	default:
-		return false
-	}
-	return false
-}
-
-func (b *Board) updateBottom(color int, cell *Cell) {
-	fmt.Println("b")
-	next, err := b.bottom(cell)
-	if err != nil {
-		return
-	}
-	cell.Update(color)
-	opponent := b.Opponent(color)
-
-	if next.State == opponent {
-		b.updateBottom(color, next)
-	}
-}
-
-func (b *Board) seekBottomLeft(color int, cell *Cell) bool {
-	next, err := b.bottomLeft(cell)
-	if err != nil {
-		return false
-	}
-	opponent := b.Opponent(color)
-
-	switch next.State {
-	case opponent:
-		return b.seekBottomLeft(color, next)
-	case color:
-		if cell.State == opponent {
-			return true
-		}
-		return false
-	default:
-		return false
-	}
-	return false
-}
-
-func (b *Board) updateBottomLeft(color int, cell *Cell) {
-	fmt.Println("bl")
-	next, err := b.bottomLeft(cell)
-	if err != nil {
-		return
-	}
-	cell.Update(color)
-	opponent := b.Opponent(color)
-
-	if next.State == opponent {
-		b.updateBottomLeft(color, next)
-	}
-}
-
-func (b *Board) seekLeft(color int, cell *Cell) bool {
-	next, err := b.left(cell)
-	if err != nil {
-		return false
-	}
-	opponent := b.Opponent(color)
-
-	switch next.State {
-	case opponent:
-		return b.seekLeft(color, next)
-	case color:
-		if cell.State == opponent {
-			return true
-		}
-		return false
-	default:
-		return false
-	}
-}
-
-func (b *Board) updateLeft(color int, cell *Cell) {
-	fmt.Println("l")
-	next, err := b.left(cell)
-	if err != nil {
-		return
-	}
-	cell.Update(color)
-	opponent := b.Opponent(color)
-
-	if next.State == opponent {
-		b.updateLeft(color, next)
-	}
-}
-
-func (b *Board) seekTopLeft(color int, cell *Cell) bool {
-	next, err := b.topLeft(cell)
-	if err != nil {
-		return false
-	}
-	opponent := b.Opponent(color)
-
-	switch next.State {
-	case opponent:
-		return b.seekTopLeft(color, next)
-	case color:
-		if cell.State == opponent {
-			return true
-		}
-		return false
-	default:
-		return false
-	}
-}
-
-func (b *Board) updateTopLeft(color int, cell *Cell) {
-	fmt.Println("tl")
-	next, err := b.topLeft(cell)
-	if err != nil {
-		return
-	}
-	cell.Update(color)
-	opponent := b.Opponent(color)
-
-	if next.State == opponent {
-		b.updateTopLeft(color, next)
+		b.update(d, color, next)
 	}
 }
