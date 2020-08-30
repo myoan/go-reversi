@@ -43,6 +43,19 @@ func (b *Board) Cell(x, y int) *Cell {
 	return b.board[y][x]
 }
 
+func (b *Board) Count(color int) int {
+	ret := 0
+	for i := 0; i < b.Height; i++ {
+		for j := 0; j < b.Width; j++ {
+			c := b.Cell(i, j)
+			if c.State == color {
+				ret++
+			}
+		}
+	}
+	return ret
+}
+
 func (b *Board) Show() {
 	fmt.Println("----------------------")
 	fmt.Println("    0 1 2 3 4 5 6 7")

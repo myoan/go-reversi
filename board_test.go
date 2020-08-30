@@ -617,3 +617,51 @@ func TestBoard_allocate(t *testing.T) {
 		}
 	}
 }
+
+func TestBoard_Count(t *testing.T) {
+	testcases := []struct {
+		desc   string
+		board  [][]int
+		expect int
+	}{
+		{
+			desc: "empty board",
+			board: [][]int{
+				{0, 0, 0, 0},
+				{0, 0, 0, 0},
+				{0, 0, 0, 0},
+				{0, 0, 0, 0},
+			},
+			expect: 0,
+		},
+		{
+			desc: "when simple test",
+			board: [][]int{
+				{1, 0, 0, 0},
+				{0, 0, 0, 0},
+				{0, 0, 0, 0},
+				{0, 0, 0, 0},
+			},
+			expect: 1,
+		},
+		{
+			desc: "when exists multi color",
+			board: [][]int{
+				{1, 0, 0, 0},
+				{0, 0, 1, 0},
+				{2, 2, 0, 0},
+				{0, 0, 0, 0},
+			},
+			expect: 2,
+		},
+	}
+
+	for _, tc := range testcases {
+		b := NewBoard(tc.board)
+		actual := b.Count(int(Black))
+		if actual != tc.expect {
+			t.Errorf("%s", tc.desc)
+			fmt.Printf("expect: %d, actual: %d\n", tc.expect, actual)
+		}
+	}
+}

@@ -74,7 +74,15 @@ func (game *Game) SetStone(color int, pos *Position) error {
 }
 
 func (game *Game) Winner() int {
-	return 1
+	bCount := game.board.Count(int(Black))
+	wCount := game.board.Count(int(White))
+	if bCount > wCount {
+		return 1
+	} else if bCount < wCount {
+		return 2
+	} else {
+		return 0
+	}
 }
 
 func (game *Game) updateGameState(s GameState) {
