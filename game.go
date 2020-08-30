@@ -48,6 +48,10 @@ func (game *Game) GetBoard() [][]*Cell {
 	return game.board.GetBoard()
 }
 
+func (game *Game) IsOccupied() bool {
+	return game.board.IsOccupied()
+}
+
 func (game *Game) SetStone(color int, pos *Position) error {
 	if game.GameState != GameState(color) {
 		fmt.Printf("OutOfTurn: client: %d, server: %d\n", color, game.GameState)
