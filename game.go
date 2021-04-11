@@ -67,7 +67,7 @@ func (game *Game) SetStone(color int, pos *Position) error {
 		return nil
 	}
 	opponent := game.board.Opponent(color)
-	if game.board.CanAllocate(opponent) {
+	if len(game.board.ListAllocatablePositions(opponent)) > 0 {
 		game.updateGameState(GameState(opponent))
 	}
 	return nil

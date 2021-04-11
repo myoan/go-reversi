@@ -78,6 +78,19 @@ func (b *Board) Show() {
 	fmt.Println("")
 }
 
+func (b *Board) ListAllocatablePositions(color int) []*Position {
+	ret := []*Position{}
+	for i := 0; i < b.Height; i++ {
+		for j := 0; j < b.Width; j++ {
+			cell := b.board[i][j]
+			if b.canAllocate(color, cell) {
+				ret = append(ret, &Position{X: cell.X, Y: cell.Y})
+			}
+		}
+	}
+	return ret
+}
+
 func (b *Board) SetStone(color int, pos *Position) error {
 	fmt.Printf("SetStone: (%d, %d) color: %d\n", pos.X, pos.Y, color)
 	cell := b.Cell(pos.X, pos.Y)
@@ -112,9 +125,26 @@ func (b *Board) Opponent(color int) int {
 	return 1
 }
 
-func (b *Board) CanAllocate(color int) bool {
-	// opponent = b.opponent(color)
-	return true
+func (b *Board) canAllocate(color int, cell *Cell) bool {
+	if cell.State != 0 {
+		return false
+	}
+	var ds = []*Direction{
+		{dx: 0, dy: -1},  // top
+		{dx: 1, dy: -1},  // top right
+		{dx: 1, dy: 0},   // right
+		{dx: 1, dy: 1},   // bottom right
+		{dx: 0, dy: 1},   // bottom
+		{dx: -1, dy: 1},  // bottom left
+		{dx: -1, dy: 0},  // left
+		{dx: -1, dy: -1}, // top left
+	}
+	for _, d := range ds {
+		if b.seek(d, color, cell) {
+			return true
+		}
+	}
+	return false
 }
 
 func (b *Board) toArray() [][]int {

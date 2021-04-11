@@ -618,6 +618,82 @@ func TestBoard_allocate(t *testing.T) {
 	}
 }
 
+func TestBoard_canAllocate(t *testing.T) {
+	testcases := []struct {
+		desc     string
+		board    [][]int
+		pos      *Position
+		expected bool
+	}{
+		{
+			desc: "when failure test",
+			board: [][]int{
+				{0, 0, 0, 0},
+				{0, 2, 0, 0},
+				{0, 1, 0, 0},
+				{0, 0, 0, 0},
+			},
+			pos:      &Position{X: 0, Y: 0},
+			expected: false,
+		},
+		{
+			desc: "when simple test",
+			board: [][]int{
+				{0, 0, 0, 0},
+				{0, 2, 0, 0},
+				{0, 1, 0, 0},
+				{0, 0, 0, 0},
+			},
+			pos:      &Position{X: 1, Y: 0},
+			expected: true,
+		},
+		{
+			desc: "when dual line",
+			board: [][]int{
+				{0, 0, 0, 0},
+				{0, 2, 2, 0},
+				{0, 1, 0, 1},
+				{0, 0, 0, 0},
+			},
+			pos:      &Position{X: 1, Y: 0},
+			expected: true,
+		},
+		{
+			desc: "when some line finish no my color",
+			board: [][]int{
+				{0, 0, 2, 2},
+				{0, 2, 2, 0},
+				{0, 1, 0, 1},
+				{0, 0, 0, 0},
+			},
+			pos:      &Position{X: 1, Y: 0},
+			expected: true,
+		},
+		{
+			desc: "when cell already occupied by myself",
+			board: [][]int{
+				{1, 0, 0, 0},
+				{0, 0, 1, 0},
+				{2, 2, 0, 0},
+				{0, 0, 0, 0},
+			},
+			pos:      &Position{X: 1, Y: 2},
+			expected: false,
+		},
+	}
+
+	for _, tc := range testcases {
+		b := NewBoard(tc.board)
+		cell := b.Cell(tc.pos.X, tc.pos.Y)
+		actual := b.canAllocate(int(Black), cell)
+		if tc.expected != actual {
+			t.Errorf("%s", tc.desc)
+			fmt.Println("actual")
+			b.Show()
+		}
+	}
+}
+
 func TestBoard_Count(t *testing.T) {
 	testcases := []struct {
 		desc   string
@@ -662,6 +738,77 @@ func TestBoard_Count(t *testing.T) {
 		if actual != tc.expect {
 			t.Errorf("%s", tc.desc)
 			fmt.Printf("expect: %d, actual: %d\n", tc.expect, actual)
+		}
+	}
+}
+
+func TestBoard_ListAllocatablePositions(t *testing.T) {
+	testcases := []struct {
+		desc   string
+		board  [][]int
+		expect int
+	}{
+		{
+			desc: "empty board",
+			board: [][]int{
+				{0, 0, 0, 0},
+				{0, 0, 0, 0},
+				{0, 0, 0, 0},
+				{0, 0, 0, 0},
+			},
+			expect: 0,
+		},
+		{
+			desc: "when simple test",
+			board: [][]int{
+				{1, 0, 0, 0},
+				{0, 0, 0, 0},
+				{0, 0, 0, 0},
+				{0, 0, 0, 0},
+			},
+			expect: 0,
+		},
+		{
+			desc: "when exists multi color",
+			board: [][]int{
+				{1, 0, 0, 0},
+				{0, 0, 1, 0},
+				{2, 2, 0, 0},
+				{0, 0, 0, 0},
+			},
+			expect: 1,
+		},
+		{
+			desc: "when many allocatable position",
+			board: [][]int{
+				{1, 0, 0, 0},
+				{1, 2, 2, 0},
+				{1, 2, 2, 0},
+				{1, 0, 0, 0},
+			},
+			expect: 6,
+		},
+		{
+			desc: "when none allocatable position",
+			board: [][]int{
+				{2, 0, 0, 0},
+				{2, 1, 1, 0},
+				{2, 1, 1, 0},
+				{2, 0, 0, 0},
+			},
+			expect: 0,
+		},
+	}
+
+	for _, tc := range testcases {
+		b := NewBoard(tc.board)
+		actual := b.ListAllocatablePositions(int(Black))
+		if tc.expect != len(actual) {
+			t.Errorf("%s", tc.desc)
+			fmt.Printf("expect: %d, actual:\n", tc.expect)
+			for _, pos := range actual {
+				fmt.Printf("    (%d, %d)\n", pos.X, pos.Y)
+			}
 		}
 	}
 }
