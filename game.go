@@ -85,6 +85,10 @@ func (game *Game) Winner() int {
 	}
 }
 
+func (game *Game) ListAllocatablePositions(color int) []*Position {
+	return game.board.ListAllocatablePositions(color)
+}
+
 func (game *Game) updateGameState(s GameState) {
 	fmt.Printf("set phase: %d -> %d\n", game.GameState, s)
 	game.GameState = s
